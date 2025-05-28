@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getCanvasArtworks, getCanvasCategories } from '../utils/artworkService';
 import GalleryGrid from '../components/GalleryGrid';
 import CategoryFilter from '../components/CategoryFilter';
-import ArtworkModal from '../components/ArtworkModal'; // Add this import
 import { Artwork } from '../types';
 
 const CanvasGallery: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'all');
   const [isLoading, setIsLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'all')
-  const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null); // Add this state
 
   useEffect(() => {
     const loadData = async () => {
@@ -27,25 +26,19 @@ const CanvasGallery: React.FC = () => {
     loadData();
   }, []);
 
-const handleCategoryChange = (category: string) => {
-  setActiveCategory(category);
-  if (category === 'all') {
-    searchParams.delete('category');
-  } else {
-    searchParams.set('category', category);
-  }
-  setSearchParams(searchParams);
-};
-
+  const handleCategoryChange = (category: string) => {
+    setActiveCategory(category);
+    if (category === 'all') {
+      searchParams.delete('category');
+    } else {
+      searchParams.set('category', category);
+    }
+    setSearchParams(searchParams);
+  };
 
   const filteredArtworks = activeCategory === 'all'
     ? artworks
     : artworks.filter(artwork => artwork.subcategory === activeCategory);
-
-  // Add this handler
-  const handleArtworkClick = (artwork: Artwork) => {
-    setSelectedArtwork(artwork);
-  };
 
   return (
     <div>
@@ -83,10 +76,7 @@ const handleCategoryChange = (category: string) => {
         ) : (
           <>
             {filteredArtworks.length > 0 ? (
-              <GalleryGrid 
-                artworks={filteredArtworks} 
-                onArtworkClick={handleArtworkClick} // Pass the click handler
-              />
+              <GalleryGrid artworks={filteredArtworks} />
             ) : (
               <div className="text-center py-12">
                 <p className="text-gray-600 text-lg">
@@ -97,14 +87,6 @@ const handleCategoryChange = (category: string) => {
           </>
         )}
       </section>
-
-      {/* Artwork Modal */}
-      {selectedArtwork && (
-        <ArtworkModal 
-          artwork={selectedArtwork}
-          onClose={() => setSelectedArtwork(null)} 
-        />
-      )}
     </div>
   );
 };

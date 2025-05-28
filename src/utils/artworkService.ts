@@ -6,6 +6,7 @@ const muralCategories = [
   'national-and-cultural',
   'abstract-design',
   'religious',
+  'beauty-and-parlor', 
   '3d-mural',
   'beach-and-underwater',
   'birds-and-animals',
