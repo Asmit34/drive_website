@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { getMuralArtworks, getMuralCategories } from '../utils/artworkService';
 import GalleryGrid from '../components/GalleryGrid';
 import CategoryFilter from '../components/CategoryFilter';
 import { Artwork } from '../types';
+import { ArrowRight } from 'lucide-react';
 
 const MuralGallery: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -59,6 +60,25 @@ const MuralGallery: React.FC = () => {
             Explore our diverse collection of stunning murals across various themes and styles.
           </p>
         </div>
+
+        {/* Gallery Navigation */}
+        <Link
+          to="/canvas"
+          className="absolute bottom-8 right-8 group bg-white/20 backdrop-blur-md hover:bg-white/30 rounded-lg p-6 transition-all duration-500 flex flex-col items-center transform hover:scale-105 hover:-translate-y-1 animate-pulse hover:animate-none shadow-xl hover:shadow-2xl ring-2 ring-white/30 hover:ring-white/50"
+        >
+          <div className="relative overflow-hidden rounded-lg mb-3">
+            <img 
+              src="https://i.postimg.cc/brYKksFr/ganesh-5.jpg"
+              alt="Canvas Gallery"
+              className="w-50 h-50 object-cover group-hover:scale-110 transition-transform duration-500 shadow-lg brightness-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent group-hover:opacity-0 transition-opacity duration-500" />
+          </div>
+          <span className="text-white flex items-center gap-2 text-lg font-medium drop-shadow-lg">
+            View 5 panel Canvas
+            <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform duration-500" />
+          </span>
+        </Link>
       </section>
 
       {/* Gallery Section */}

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { getCanvasArtworks, getCanvasCategories } from '../utils/artworkService';
 import GalleryGrid from '../components/GalleryGrid';
 import CategoryFilter from '../components/CategoryFilter';
 import { Artwork } from '../types';
+import { ArrowRight } from 'lucide-react';
 
 const CanvasGallery: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -43,7 +44,7 @@ const CanvasGallery: React.FC = () => {
   return (
     <div>
       {/* Hero Section */}
-      <section className="relative h-[50vh] flex items-center justify-center">
+      <section className="relative h-[60vh] flex items-center justify-center">
         <div className="absolute inset-0">
           <img 
             src="https://images.pexels.com/photos/1389429/pexels-photo-1389429.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
@@ -59,6 +60,25 @@ const CanvasGallery: React.FC = () => {
             Discover our collection of exquisite canvas artworks showcasing remarkable talent and creativity.
           </p>
         </div>
+
+        {/* Gallery Navigation */}
+        <Link
+          to="/murals"
+          className="absolute bottom-8 right-8 group bg-white/20 backdrop-blur-md hover:bg-white/30 rounded-lg p-6 transition-all duration-500 flex flex-col items-center transform hover:scale-105 hover:-translate-y-1 animate-pulse hover:animate-none shadow-xl hover:shadow-2xl ring-2 ring-white/30 hover:ring-white/50"
+        >
+          <div className="relative overflow-hidden rounded-lg mb-3">
+            <img 
+              src="https://images.pexels.com/photos/1995730/pexels-photo-1995730.jpeg?auto=compress&cs=tinysrgb&w=400"
+              alt="Mural Gallery"
+              className="w-80 h-72 object-cover group-hover:scale-110 transition-transform duration-500 shadow-lg brightness-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent group-hover:opacity-0 transition-opacity duration-500" />
+          </div>
+          <span className="text-white flex items-center gap-2 text-lg font-medium drop-shadow-lg">
+            View Mural Gallery
+            <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform duration-500" />
+          </span>
+        </Link>
       </section>
 
       {/* Gallery Section */}
