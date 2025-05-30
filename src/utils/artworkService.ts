@@ -33,6 +33,10 @@ const canvasCategories = [
   'sports'
 ];
 
+const singleCanvasCategories = [
+  'Religious'
+];
+
 let mockArtworks: Artwork[] = [];
 
 async function loadArtworkData() {
@@ -77,7 +81,7 @@ async function loadArtworkData() {
       }
     }
 
-    // Load CANVAS
+    // Load 5-PANEL CANVAS
     for (const subcategory of canvasCategories) {
       try {
         const csvPath = `/data/canvas/${subcategory}.csv`;
@@ -109,6 +113,44 @@ async function loadArtworkData() {
           });
           
           console.log(`[ArtworkService] Added canvas: ${fullUrl}`);
+        });
+      } catch (e) {
+        console.error(`[ArtworkService] Error loading ${subcategory}:`, e);
+      }
+    }
+
+    // Load SINGLE PANEL CANVAS
+    for (const subcategory of singleCanvasCategories) {
+      try {
+        const csvPath = `/data/single-canvas/${subcategory}.csv`;
+        console.log(`[ArtworkService] Loading ${csvPath}`);
+        
+        const response = await fetch(csvPath);
+        if (!response.ok) {
+          console.warn(`[ArtworkService] CSV not found: ${csvPath}`);
+          continue;
+        }
+
+        const csvText = await response.text();
+        const imageUrls = parseImageCSV(csvText);
+        
+        imageUrls.forEach((url, index) => {
+          if (!url) return;
+          
+          const fullUrl = url.startsWith('http') ? url : 
+                         url.startsWith('/') ? url : `/${url}`;
+          
+          mockArtworks.push({
+            id: `sc-${subcategory}-${index}`,
+            title: '',
+            description: '',
+            imageUrl: fullUrl,
+            category: 'single-canvas',
+            subcategory,
+            featured: index < 3
+          });
+          
+          console.log(`[ArtworkService] Added single canvas: ${fullUrl}`);
         });
       } catch (e) {
         console.error(`[ArtworkService] Error loading ${subcategory}:`, e);
@@ -149,6 +191,12 @@ export const getCanvasCategories = async (): Promise<string[]> => {
   });
 };
 
+export const getSingleCanvasCategories = async (): Promise<string[]> => {
+  return new Promise(resolve => {
+    setTimeout(() => resolve([...singleCanvasCategories]), 300);
+  });
+};
+
 export const getMuralArtworks = async (): Promise<Artwork[]> => {
   return new Promise(resolve => {
     setTimeout(() => {
@@ -165,6 +213,16 @@ export const getCanvasArtworks = async (): Promise<Artwork[]> => {
       const canvases = mockArtworks.filter(a => a.category === 'canvas');
       console.log('[ArtworkService] Returning canvas artworks:', canvases.length);
       resolve([...canvases]);
+    }, 800);
+  });
+};
+
+export const getSingleCanvasArtworks = async (): Promise<Artwork[]> => {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const singleCanvases = mockArtworks.filter(a => a.category === 'single-canvas');
+      console.log('[ArtworkService] Returning single canvas artworks:', singleCanvases.length);
+      resolve([...singleCanvases]);
     }, 800);
   });
 };
