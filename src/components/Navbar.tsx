@@ -8,7 +8,7 @@ const Navbar: React.FC = () => {
   const [canvasDropdownOpen, setCanvasDropdownOpen] = useState(false);
   const location = useLocation();
 
-  // Close dropdowns when route changes
+  // Close menu when route changes or on scroll
   useEffect(() => {
     setIsOpen(false);
     setCanvasDropdownOpen(false);
@@ -42,9 +42,8 @@ const Navbar: React.FC = () => {
             <NavLink to="/" label="Home" isScrolled={isScrolled} />
             <NavLink to="/murals" label="Mural Gallery" isScrolled={isScrolled} />
             
-            {/* Canvas Gallery Dropdown */}
-            <div 
-              className="relative group"
+            {/* Canvas Dropdown */}
+            <div className="relative group"
               onMouseEnter={() => setCanvasDropdownOpen(true)}
               onMouseLeave={() => setCanvasDropdownOpen(false)}
             >
@@ -59,13 +58,11 @@ const Navbar: React.FC = () => {
                 >
                   Canvas Gallery
                 </Link>
-                <ChevronDown size={18} className={`
-                  transition-transform duration-200 ${
-                    canvasDropdownOpen ? 'rotate-180' : ''
-                  } ${
-                    isScrolled ? 'text-indigo-900' : 'text-white'
-                  }`}
-                />
+                <ChevronDown size={18} className={`transition-transform duration-200 ${
+                  canvasDropdownOpen ? 'rotate-180' : ''
+                } ${
+                  isScrolled ? 'text-indigo-900' : 'text-white'
+                }`} />
               </div>
               
               {canvasDropdownOpen && (
@@ -82,7 +79,7 @@ const Navbar: React.FC = () => {
 
           {/* Mobile Menu Button */}
           <button 
-            className="md:hidden"
+            className="md:hidden p-2 rounded-md focus:outline-none"
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle menu"
           >
@@ -96,37 +93,37 @@ const Navbar: React.FC = () => {
       </div>
 
       {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden bg-white">
-          <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
-            <MobileNavLink to="/" label="Home" />
-            <MobileNavLink to="/murals" label="Mural Gallery" />
+      <div className={`md:hidden bg-white transition-all duration-300 ease-in-out ${
+        isOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
+      }`}>
+        <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
+          <MobileNavLink to="/" label="Home" />
+          <MobileNavLink to="/murals" label="Mural Gallery" />
+          
+          {/* Mobile Canvas Dropdown */}
+          <div className="flex flex-col">
+            <button 
+              className="flex items-center justify-between text-xl py-2 text-indigo-900"
+              onClick={() => setCanvasDropdownOpen(!canvasDropdownOpen)}
+            >
+              <span>Canvas Gallery</span>
+              <ChevronDown size={18} className={`transition-transform ${
+                canvasDropdownOpen ? 'rotate-180' : ''
+              }`} />
+            </button>
             
-            {/* Mobile Canvas Dropdown */}
-            <div className="flex flex-col">
-              <button 
-                className="flex items-center justify-between text-xl py-2 text-indigo-900"
-                onClick={() => setCanvasDropdownOpen(!canvasDropdownOpen)}
-              >
-                <span>Canvas Gallery</span>
-                <ChevronDown size={18} className={`transition-transform ${
-                  canvasDropdownOpen ? 'rotate-180' : ''
-                }`} />
-              </button>
-              
-              {canvasDropdownOpen && (
-                <div className="pl-4 space-y-3 mt-2">
-                  <MobileNavLink to="/canvas" label="5 Panel Canvas" />
-                  <MobileNavLink to="/canvas/single" label="Single Panel Canvas" />
-                </div>
-              )}
-            </div>
-
-            <MobileNavLink to="/about" label="About" />
-            <MobileNavLink to="/contact" label="Contact" />
+            {canvasDropdownOpen && (
+              <div className="pl-4 space-y-3 mt-2">
+                <MobileNavLink to="/canvas" label="5 Panel Canvas" />
+                <MobileNavLink to="/canvas/single" label="Single Panel Canvas" />
+              </div>
+            )}
           </div>
+
+          <MobileNavLink to="/about" label="About" />
+          <MobileNavLink to="/contact" label="Contact" />
         </div>
-      )}
+      </div>
     </header>
   );
 };
