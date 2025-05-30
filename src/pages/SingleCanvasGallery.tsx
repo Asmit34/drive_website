@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { getSingleCanvasArtworks, getSingleCanvasCategories } from '../utils/artworkService';
+import GalleryGrid from '../components/GalleryGrid';
 import { Artwork } from '../types';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 
@@ -45,12 +46,6 @@ const SingleCanvasGallery: React.FC = () => {
   const filteredArtworks = activeCategory === 'all'
     ? artworks
     : artworks.filter(artwork => artwork.subcategory === activeCategory);
-
-  // Group artworks into pairs for 2-column mobile layout
-  const groupedArtworks = [];
-  for (let i = 0; i < filteredArtworks.length; i += 2) {
-    groupedArtworks.push(filteredArtworks.slice(i, i + 2));
-  }
 
   return (
     <div>
@@ -153,31 +148,7 @@ const SingleCanvasGallery: React.FC = () => {
         ) : (
           <>
             {filteredArtworks.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {groupedArtworks.map((pair, index) => (
-                  <div key={index} className="grid grid-cols-2 gap-4 sm:grid-cols-1 sm:gap-6">
-                    {pair.map((artwork) => (
-                      <div 
-                        key={artwork.id}
-                        className="group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow cursor-pointer"
-                      >
-                        <img 
-                          src={artwork.imageUrl} 
-                          alt={artwork.title || `Artwork ${artwork.id}`}
-                          className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105" 
-                          loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                          <h3 className="text-white text-lg font-bold">{artwork.title || 'Untitled'}</h3>
-                          {artwork.description && (
-                            <p className="text-gray-300 text-sm mt-1 line-clamp-2">{artwork.description}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
+              <GalleryGrid artworks={filteredArtworks} />
             ) : (
               <div className="text-center py-12">
                 <p className="text-gray-600 text-lg">
