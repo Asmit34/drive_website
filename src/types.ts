@@ -3,7 +3,7 @@ export interface Artwork {
   title: string;       // Empty string allowed
   description?: string; // Optional (can omit)
   imageUrl: string;    // Only required field (from CSV's 'image' column)
-  category: 'mural' | 'canvas';
+  category: 'mural' | 'canvas' | 'single-canvas';
   subcategory: string;
   featured?: boolean;  // Optional
 }

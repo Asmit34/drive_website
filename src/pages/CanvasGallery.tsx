@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { getCanvasArtworks, getCanvasCategories } from '../utils/artworkService';
 import GalleryGrid from '../components/GalleryGrid';
-import CategoryFilter from '../components/CategoryFilter';
 import { Artwork } from '../types';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ChevronDown } from 'lucide-react';
 
 const CanvasGallery: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -12,6 +11,7 @@ const CanvasGallery: React.FC = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'all');
   const [isLoading, setIsLoading] = useState(true);
+  const [showMobileCategories, setShowMobileCategories] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -54,40 +54,88 @@ const CanvasGallery: React.FC = () => {
           <div className="absolute inset-0 bg-indigo-900/60" />
         </div>
         
-        <div className="relative text-center text-white mx-4">
+        <div className="relative text-center text-white mx-4 -mt-8 md:mt-0">
           <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4">Canvas Gallery</h1>
           <p className="text-xl max-w-2xl mx-auto">
             Discover our collection of exquisite canvas artworks showcasing remarkable talent and creativity.
           </p>
         </div>
 
-        {/* Gallery Navigation */}
         <Link
-          to="/murals"
-          className="absolute bottom-8 right-8 group bg-white/20 backdrop-blur-md hover:bg-white/30 rounded-lg p-6 transition-all duration-500 flex flex-col items-center transform hover:scale-105 hover:-translate-y-1 animate-pulse hover:animate-none shadow-xl hover:shadow-2xl ring-2 ring-white/30 hover:ring-white/50"
+          to="/canvas/single"
+          className="absolute bottom-9 md:bottom-12 left-1/2 -translate-x-1/2 md:left-auto md:right-8 md:translate-x-0 group bg-gradient-to-br from-pink-500 via-red-500 to-yellow-500 hover:from-yellow-600 hover:via-pink-500 hover:to-red-400 text-white rounded-2xl p-4 md:p-6 transition-all duration-500 flex flex-col items-center transform hover:scale-105 hover:-translate-y-1 shadow-2xl hover:shadow-yellow-400/40 ring-4 ring-white/20 hover:ring-white/40 w-full max-w-xs md:w-96"
         >
-          <div className="relative overflow-hidden rounded-lg mb-3">
-            <img 
-              src="https://images.pexels.com/photos/1995730/pexels-photo-1995730.jpeg?auto=compress&cs=tinysrgb&w=400"
-              alt="Mural Gallery"
-              className="w-80 h-72 object-cover group-hover:scale-110 transition-transform duration-500 shadow-lg brightness-110"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent group-hover:opacity-0 transition-opacity duration-500" />
+          <div className="relative overflow-hidden rounded-xl mb-3 flex flex-col items-center justify-center w-full h-20 md:h-30 bg-white/10 backdrop-blur-md shadow-inner">
+            <div className="text-center p-3 space-y-1">
+              <p className="text-white text-xl font-bold tracking-wide drop-shadow-md">Single Panel Canvas Gallery</p>
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent group-hover:opacity-0 transition-opacity duration-500" />
           </div>
-          <span className="text-white flex items-center gap-2 text-lg font-medium drop-shadow-lg">
-            View Mural Gallery
+          <span className="text-white flex items-center gap-2 text-base md:text-lg font-bold tracking-wide drop-shadow-md">
+            Click here
             <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform duration-500" />
           </span>
         </Link>
+
+
       </section>
 
       {/* Gallery Section */}
       <section className="py-16 container mx-auto px-4">
-        <CategoryFilter 
-          categories={categories}
-          activeCategory={activeCategory}
-          onCategoryChange={handleCategoryChange}
-        />
+        {/* Desktop Category Filter */}
+        <div className="hidden md:flex flex-wrap gap-2 mb-8">
+          <button
+            onClick={() => handleCategoryChange('all')}
+            className={`px-4 py-2 rounded-full ${activeCategory === 'all' ? 'bg-indigo-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+          >
+            All
+          </button>
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => handleCategoryChange(category)}
+              className={`px-4 py-2 rounded-full ${activeCategory === category ? 'bg-indigo-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+            >
+              {category.split('-').join(' ')}
+            </button>
+          ))}
+        </div>
+
+        {/* Mobile Category Filter */}
+        <div className="md:hidden mb-8 space-y-2">
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleCategoryChange('all')}
+              className={`px-4 py-2 rounded-full flex-1 ${activeCategory === 'all' ? 'bg-indigo-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setShowMobileCategories(!showMobileCategories)}
+              className="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center gap-1"
+            >
+              See by Category
+              <ChevronDown size={16} className={`transition-transform ${showMobileCategories ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
+
+          {showMobileCategories && (
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => {
+                    handleCategoryChange(category);
+                    setShowMobileCategories(false);
+                  }}
+                  className={`px-4 py-2 rounded-full text-sm ${activeCategory === category ? 'bg-indigo-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                >
+                  {category.split('-').join(' ')}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
