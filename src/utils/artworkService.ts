@@ -34,8 +34,8 @@ const canvasCategories = [
 ];
 
 const singleCanvasCategories = [
+  'traditional-and-cultural-nepali-design',
   'religious',
-  'traditional-and-cultural-nepali-design'
 
 ];
 
