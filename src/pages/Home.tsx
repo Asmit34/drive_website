@@ -114,7 +114,7 @@ const Home: React.FC = () => {
             Explore some of our most captivating pieces that showcase the depth and diversity of our collection.
           </p>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {artworks.slice(0, 6).map((artwork) => (
               <div 
                 key={artwork.id}
