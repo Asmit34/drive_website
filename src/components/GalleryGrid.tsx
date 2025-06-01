@@ -12,15 +12,26 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({ artworks, title }) => {
   const [currentImage, setCurrentImage] = useState<Artwork | null>(null);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Optimize image URL with query parameters for size and quality
-  const optimizeImageUrl = (url: string, width: number = 400) => {
-    if (url.includes('your-image-service.com')) {
-      return `${url}?w=${width}&q=80&auto=format`;
-    }
-    return url;
+  // Detect mobile devices
+  useEffect(() => {
+    const checkIfMobile = () => setIsMobile(window.innerWidth < 768);
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
+
+  // Mobile-optimized image URL generator
+  const getOptimizedImageUrl = (url: string) => {
+    if (!url) return '';
+    const params = isMobile 
+      ? '?w=400&h=300&q=70&auto=format&fm=webp' 
+      : '?w=800&h=600&q=85&auto=format';
+    return `${url.split('?')[0]}${params}`;
   };
 
+  // Lightbox controls
   const openLightbox = (artwork: Artwork) => {
     setCurrentImage(artwork);
     setLightboxOpen(true);
@@ -34,97 +45,96 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({ artworks, title }) => {
 
   const handleNext = useCallback(() => {
     if (!currentImage) return;
-    const currentIndex = artworks.findIndex(artwork => artwork.id === currentImage.id);
+    const currentIndex = artworks.findIndex(a => a.id === currentImage.id);
     const nextIndex = (currentIndex + 1) % artworks.length;
     setCurrentImage(artworks[nextIndex]);
   }, [artworks, currentImage]);
 
   const handlePrev = useCallback(() => {
     if (!currentImage) return;
-    const currentIndex = artworks.findIndex(artwork => artwork.id === currentImage.id);
+    const currentIndex = artworks.findIndex(a => a.id === currentImage.id);
     const prevIndex = (currentIndex - 1 + artworks.length) % artworks.length;
     setCurrentImage(artworks[prevIndex]);
   }, [artworks, currentImage]);
 
-  // Preload first few images
-  useEffect(() => {
-    artworks.slice(0, 6).forEach(artwork => {
-      const img = new Image();
-      img.src = optimizeImageUrl(artwork.imageUrl, 800);
-      img.onload = () => {
-        setLoadedImages(prev => ({ ...prev, [artwork.id]: true }));
-      };
-    });
-  }, [artworks]);
-
-  // Keyboard navigation
+  // Keyboard navigation for lightbox
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!lightboxOpen) return;
-      
       switch (e.key) {
         case 'ArrowLeft': handlePrev(); break;
         case 'ArrowRight': handleNext(); break;
         case 'Escape': closeLightbox(); break;
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lightboxOpen, handleNext, handlePrev]);
 
-  // Touch navigation
+  // Touch navigation for lightbox
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.touches[0].clientX);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStart === null) return;
+    if (!touchStart) return;
     const diff = touchStart - e.touches[0].clientX;
     if (Math.abs(diff) > 50) diff > 0 ? handleNext() : handlePrev();
     setTouchStart(null);
   };
 
+  // Image component with optimized loading
+  const ImageWithLoader = ({ artwork }: { artwork: Artwork }) => {
+    const [loaded, setLoaded] = useState(false);
+    const optimizedUrl = getOptimizedImageUrl(artwork.imageUrl);
+
+    return (
+      <div className="relative aspect-[4/3]">
+        {!loaded && (
+          <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg" />
+        )}
+        <img
+          src={optimizedUrl}
+          alt={artwork.title || `Artwork ${artwork.id}`}
+          className={`w-full h-full object-cover transition-opacity duration-300 ${
+            loaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => {
+            setLoaded(true);
+            setLoadedImages(prev => ({ ...prev, [artwork.id]: true }));
+          }}
+        />
+      </div>
+    );
+  };
+
   return (
-    <div>
+    <div className="gallery-container">
       {title && (
-        <h2 className="text-2xl font-serif font-bold mb-6 text-indigo-900">{title}</h2>
+        <h2 className="text-2xl font-serif font-bold mb-6 text-indigo-900">
+          {title}
+        </h2>
       )}
       
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
         {artworks.map((artwork) => (
           <div 
             key={artwork.id}
             className="group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow cursor-pointer"
             onClick={() => openLightbox(artwork)}
           >
-            {/* Skeleton loader */}
-            {!loadedImages[artwork.id] && (
-              <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg"></div>
-            )}
-            
-            {/* Optimized image with lazy loading */}
-            <img 
-              src={optimizeImageUrl(artwork.imageUrl, 400)}
-              srcSet={`
-                ${optimizeImageUrl(artwork.imageUrl, 400)} 400w,
-                ${optimizeImageUrl(artwork.imageUrl, 800)} 800w,
-                ${optimizeImageUrl(artwork.imageUrl, 1200)} 1200w
-              `}
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              alt={artwork.title || `Artwork ${artwork.id}`}
-              className={`w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110 ${
-                loadedImages[artwork.id] ? 'opacity-100' : 'opacity-0'
-              }`}
-              loading="lazy"
-              decoding="async"
-              onLoad={() => setLoadedImages(prev => ({ ...prev, [artwork.id]: true }))}
-            />
+            <ImageWithLoader artwork={artwork} />
             
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-              <h3 className="text-white text-lg font-bold">{artwork.title || 'Untitled'}</h3>
+              <h3 className="text-white text-lg font-bold">
+                {artwork.title || 'Untitled'}
+              </h3>
               {artwork.description && (
-                <p className="text-gray-300 text-sm mt-1 line-clamp-2">{artwork.description}</p>
+                <p className="text-gray-300 text-sm mt-1 line-clamp-2">
+                  {artwork.description}
+                </p>
               )}
             </div>
           </div>
@@ -134,7 +144,7 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({ artworks, title }) => {
       {/* Lightbox */}
       {lightboxOpen && currentImage && (
         <div 
-          className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center"
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onClick={closeLightbox}
@@ -149,18 +159,25 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({ artworks, title }) => {
             <X size={32} />
           </button>
           
-          <div className="w-full max-w-5xl p-4" onClick={e => e.stopPropagation()}>
+          <div 
+            className="w-full max-w-5xl p-4" 
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="relative">
               <img 
-                src={optimizeImageUrl(currentImage.imageUrl, 1200)}
+                src={getOptimizedImageUrl(currentImage.imageUrl).replace('w=400', 'w=1200').replace('q=70', 'q=90')}
                 alt={currentImage.title || 'Artwork'}
-                className="max-h-[80vh] mx-auto object-contain" 
+                className="max-h-[80vh] mx-auto object-contain"
               />
               
               <div className="mt-4 text-center text-white">
-                <h3 className="text-xl font-bold">{currentImage.title || 'Untitled'}</h3>
+                <h3 className="text-xl font-bold">
+                  {currentImage.title || 'Untitled'}
+                </h3>
                 {currentImage.description && (
-                  <p className="text-gray-300 mt-2">{currentImage.description}</p>
+                  <p className="text-gray-300 mt-2">
+                    {currentImage.description}
+                  </p>
                 )}
               </div>
             </div>
