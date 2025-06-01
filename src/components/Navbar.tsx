@@ -53,6 +53,7 @@ const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [canvasDropdownOpen, setCanvasDropdownOpen] = useState(false);
+  const [dropdownHover, setDropdownHover] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -90,11 +91,19 @@ const Navbar: React.FC = () => {
             <NavLink to="/" label="Home" isScrolled={isScrolled} />
             <NavLink to="/murals" label="Mural Gallery" isScrolled={isScrolled} />
             
-            {/* Canvas Dropdown */}
+            {/* Improved Canvas Dropdown */}
             <div 
-              className="relative group"
-              onMouseEnter={() => setCanvasDropdownOpen(true)}
-              onMouseLeave={() => setCanvasDropdownOpen(false)}
+              className="relative"
+              onMouseEnter={() => {
+                setCanvasDropdownOpen(true);
+                setDropdownHover(true);
+              }}
+              onMouseLeave={() => {
+                setDropdownHover(false);
+                setTimeout(() => {
+                  if (!dropdownHover) setCanvasDropdownOpen(false);
+                }, 300); // Delay closing to allow cursor movement
+              }}
             >
               <div className="flex items-center gap-1 cursor-pointer">
                 <Link
@@ -115,7 +124,14 @@ const Navbar: React.FC = () => {
               </div>
               
               {canvasDropdownOpen && (
-                <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                <div 
+                  className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50"
+                  onMouseEnter={() => setDropdownHover(true)}
+                  onMouseLeave={() => {
+                    setDropdownHover(false);
+                    setCanvasDropdownOpen(false);
+                  }}
+                >
                   <Link
                     to="/canvas"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
