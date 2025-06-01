@@ -12,26 +12,40 @@ const SingleCanvasGallery: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'all');
   const [isLoading, setIsLoading] = useState(true);
   const [showMobileCategories, setShowMobileCategories] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [singleCanvasCategories, singleCanvasArtworks] = await Promise.all([
+        getSingleCanvasCategories(),
+        getSingleCanvasArtworks()
+      ]);
+      
+      if (singleCanvasArtworks.length === 0 && retryCount < 2) {
+        // If no artworks found but we can retry
+        setTimeout(() => setRetryCount(prev => prev + 1), 1000);
+        return;
+      }
+
+      setCategories(singleCanvasCategories);
+      setArtworks(singleCanvasArtworks);
+    } catch (err) {
+      console.error("Error loading data:", err);
+      setError("Failed to load artworks");
+      if (retryCount < 2) {
+        setTimeout(() => setRetryCount(prev => prev + 1), 1000);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        const [singleCanvasCategories, singleCanvasArtworks] = await Promise.all([
-          getSingleCanvasCategories(),
-          getSingleCanvasArtworks()
-        ]);
-        setCategories(singleCanvasCategories);
-        setArtworks(singleCanvasArtworks);
-      } catch (error) {
-        console.error("Error loading data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadData();
-  }, []);
+  }, [retryCount]);
 
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
@@ -41,6 +55,11 @@ const SingleCanvasGallery: React.FC = () => {
       searchParams.set('category', category);
     }
     setSearchParams(searchParams);
+  };
+
+  const handleRetry = () => {
+    setRetryCount(0);
+    loadData();
   };
 
   const filteredArtworks = activeCategory === 'all'
@@ -56,6 +75,7 @@ const SingleCanvasGallery: React.FC = () => {
             src="https://images.pexels.com/photos/1477166/pexels-photo-1477166.jpeg"
             alt="Single Panel Canvas Gallery"
             className="w-full h-full object-cover"
+            loading="eager" // Load hero image immediately
           />
           <div className="absolute inset-0 bg-indigo-900/60" />
         </div>
@@ -145,18 +165,30 @@ const SingleCanvasGallery: React.FC = () => {
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-900"></div>
           </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg mb-4">{error}</p>
+            <button
+              onClick={handleRetry}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+            >
+              Retry Loading
+            </button>
+          </div>
+        ) : filteredArtworks.length > 0 ? (
+          <GalleryGrid artworks={filteredArtworks} />
         ) : (
-          <>
-            {filteredArtworks.length > 0 ? (
-              <GalleryGrid artworks={filteredArtworks} />
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-600 text-lg">
-                  No artworks found in this category.
-                </p>
-              </div>
-            )}
-          </>
+          <div className="text-center py-12">
+            <p className="text-gray-600 text-lg">
+              No artworks found in this category.
+            </p>
+            <button
+              onClick={handleRetry}
+              className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+            >
+              Retry Loading
+            </button>
+          </div>
         )}
       </section>
     </div>
