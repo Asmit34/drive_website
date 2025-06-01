@@ -122,7 +122,7 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({ artworks, title }) => {
             />
             
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-              <h3 className="text-white text-lg font-bold">{artwork.title || 'Untitled'}</h3>
+              <h3 className="text-white text-lg font-bold">{artwork.title || ' '}</h3>
               {artwork.description && (
                 <p className="text-gray-300 text-sm mt-1 line-clamp-2">{artwork.description}</p>
               )}
