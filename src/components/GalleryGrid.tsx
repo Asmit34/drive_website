@@ -158,7 +158,7 @@ const GalleryGrid: React.FC<GalleryGridProps> = ({ artworks, title }) => {
               />
               
               <div className="mt-4 text-center text-white">
-                <h3 className="text-xl font-bold">{currentImage.title || 'Untitled'}</h3>
+                <h3 className="text-xl font-bold">{currentImage.title || " "}</h3>
                 {currentImage.description && (
                   <p className="text-gray-300 mt-2">{currentImage.description}</p>
                 )}
