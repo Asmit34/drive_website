@@ -36,14 +36,37 @@ const canvasCategories = [
 const singleCanvasCategories = [
   'traditional-and-cultural-nepali-design',
   'religious',
-
 ];
 
-let mockArtworks: Artwork[] = [];
+// Use a Map for better performance
+const artworkCache = new Map<string, Artwork[]>();
+
+// Function to check if an image URL is accessible with timeout
+async function isImageAccessible(url: string): Promise<boolean> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+    const response = await fetch(url, { 
+      method: 'HEAD',
+      signal: controller.signal 
+    });
+    
+    clearTimeout(timeoutId);
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
 
 async function loadArtworkData() {
+  if (artworkCache.size > 0) return; // Use cached data if available
+
   try {
     console.log('[ArtworkService] Loading artwork data...');
+    const muralArtworks: Artwork[] = [];
+    const canvasArtworks: Artwork[] = [];
+    const singleCanvasArtworks: Artwork[] = [];
 
     // Load MURALS
     for (const subcategory of muralCategories) {
@@ -60,24 +83,23 @@ async function loadArtworkData() {
         const csvText = await response.text();
         const imageUrls = parseImageCSV(csvText);
         
-        imageUrls.forEach((url, index) => {
-          if (!url) return;
+        for (const url of imageUrls) {
+          if (!url) continue;
           
           const fullUrl = url.startsWith('http') ? url : 
                          url.startsWith('/') ? url : `/${url}`;
           
-          mockArtworks.push({
-            id: `m-${subcategory}-${index}`,
+          // Add to cache immediately without checking accessibility
+          muralArtworks.push({
+            id: `m-${subcategory}-${muralArtworks.length}`,
             title: '',
             description: '',
             imageUrl: fullUrl,
             category: 'mural',
             subcategory,
-            featured: index < 3
+            featured: muralArtworks.length < 3
           });
-          
-          console.log(`[ArtworkService] Added mural: ${fullUrl}`);
-        });
+        }
       } catch (e) {
         console.error(`[ArtworkService] Error loading ${subcategory}:`, e);
       }
@@ -98,24 +120,22 @@ async function loadArtworkData() {
         const csvText = await response.text();
         const imageUrls = parseImageCSV(csvText);
         
-        imageUrls.forEach((url, index) => {
-          if (!url) return;
+        for (const url of imageUrls) {
+          if (!url) continue;
           
           const fullUrl = url.startsWith('http') ? url : 
                          url.startsWith('/') ? url : `/${url}`;
           
-          mockArtworks.push({
-            id: `c-${subcategory}-${index}`,
+          canvasArtworks.push({
+            id: `c-${subcategory}-${canvasArtworks.length}`,
             title: '',
             description: '',
             imageUrl: fullUrl,
             category: 'canvas',
             subcategory,
-            featured: index < 3
+            featured: canvasArtworks.length < 3
           });
-          
-          console.log(`[ArtworkService] Added canvas: ${fullUrl}`);
-        });
+        }
       } catch (e) {
         console.error(`[ArtworkService] Error loading ${subcategory}:`, e);
       }
@@ -136,30 +156,35 @@ async function loadArtworkData() {
         const csvText = await response.text();
         const imageUrls = parseImageCSV(csvText);
         
-        imageUrls.forEach((url, index) => {
-          if (!url) return;
+        for (const url of imageUrls) {
+          if (!url) continue;
           
           const fullUrl = url.startsWith('http') ? url : 
                          url.startsWith('/') ? url : `/${url}`;
           
-          mockArtworks.push({
-            id: `sc-${subcategory}-${index}`,
+          singleCanvasArtworks.push({
+            id: `sc-${subcategory}-${singleCanvasArtworks.length}`,
             title: '',
             description: '',
             imageUrl: fullUrl,
             category: 'single-canvas',
             subcategory,
-            featured: index < 3
+            featured: singleCanvasArtworks.length < 3
           });
-          
-          console.log(`[ArtworkService] Added single canvas: ${fullUrl}`);
-        });
+        }
       } catch (e) {
         console.error(`[ArtworkService] Error loading ${subcategory}:`, e);
       }
     }
 
-    console.log('[ArtworkService] Loaded artworks:', mockArtworks.length);
+    // Cache the results
+    artworkCache.set('murals', muralArtworks);
+    artworkCache.set('canvas', canvasArtworks);
+    artworkCache.set('single-canvas', singleCanvasArtworks);
+
+    console.log('[ArtworkService] Loaded artworks:', 
+      muralArtworks.length + canvasArtworks.length + singleCanvasArtworks.length
+    );
   } catch (error) {
     console.error('[ArtworkService] Initialization failed:', error);
   }
@@ -180,61 +205,40 @@ function parseImageCSV(csvText: string): string[] {
 // Initialize
 loadArtworkData();
 
-// Service functions
+// Service functions with improved caching
 export const getMuralCategories = async (): Promise<string[]> => {
-  return new Promise(resolve => {
-    setTimeout(() => resolve([...muralCategories]), 300);
-  });
+  return Promise.resolve([...muralCategories]);
 };
 
 export const getCanvasCategories = async (): Promise<string[]> => {
-  return new Promise(resolve => {
-    setTimeout(() => resolve([...canvasCategories]), 300);
-  });
+  return Promise.resolve([...canvasCategories]);
 };
 
 export const getSingleCanvasCategories = async (): Promise<string[]> => {
-  return new Promise(resolve => {
-    setTimeout(() => resolve([...singleCanvasCategories]), 300);
-  });
+  return Promise.resolve([...singleCanvasCategories]);
 };
 
 export const getMuralArtworks = async (): Promise<Artwork[]> => {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      const murals = mockArtworks.filter(a => a.category === 'mural');
-      console.log('[ArtworkService] Returning mural artworks:', murals.length);
-      resolve([...murals]);
-    }, 800);
-  });
+  await loadArtworkData();
+  return Promise.resolve(artworkCache.get('murals') || []);
 };
 
 export const getCanvasArtworks = async (): Promise<Artwork[]> => {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      const canvases = mockArtworks.filter(a => a.category === 'canvas');
-      console.log('[ArtworkService] Returning canvas artworks:', canvases.length);
-      resolve([...canvases]);
-    }, 800);
-  });
+  await loadArtworkData();
+  return Promise.resolve(artworkCache.get('canvas') || []);
 };
 
 export const getSingleCanvasArtworks = async (): Promise<Artwork[]> => {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      const singleCanvases = mockArtworks.filter(a => a.category === 'single-canvas');
-      console.log('[ArtworkService] Returning single canvas artworks:', singleCanvases.length);
-      resolve([...singleCanvases]);
-    }, 800);
-  });
+  await loadArtworkData();
+  return Promise.resolve(artworkCache.get('single-canvas') || []);
 };
 
 export const getHighlightedArtworks = async (): Promise<Artwork[]> => {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      const featured = mockArtworks.filter(a => a.featured);
-      console.log('[ArtworkService] Returning featured artworks:', featured.length);
-      resolve([...featured]);
-    }, 500);
-  });
+  await loadArtworkData();
+  const allArtworks = [
+    ...(artworkCache.get('murals') || []),
+    ...(artworkCache.get('canvas') || []),
+    ...(artworkCache.get('single-canvas') || [])
+  ];
+  return Promise.resolve(allArtworks.filter(a => a.featured));
 };
