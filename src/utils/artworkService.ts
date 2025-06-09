@@ -234,7 +234,7 @@ export const getSingleCanvasArtworks = async (): Promise<Artwork[]> => {
 };
 
 export const getHighlightedArtworks = async (): Promise<Artwork[]> => {
-  await loadArtworkData();
+  await loadArtworkData(); 
   const allArtworks = [
     ...(artworkCache.get('murals') || []),
     ...(artworkCache.get('canvas') || []),
