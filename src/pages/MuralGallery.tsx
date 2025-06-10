@@ -41,12 +41,6 @@ const MuralGallery: React.FC = () => {
     ? artworks
     : artworks.filter(artwork => artwork.subcategory === activeCategory);
 
-  // Mobile-specific artwork grouping (2 per row)
-  const groupedArtworks = [];
-  for (let i = 0; i < filteredArtworks.length; i += 2) {
-    groupedArtworks.push(filteredArtworks.slice(i, i + 2));
-  }
-
   return (
     <div>
       {/* Hero Section - Unchanged */}
@@ -86,7 +80,7 @@ const MuralGallery: React.FC = () => {
 
       {/* Gallery Section */}
       <section className="py-16 container mx-auto px-4">
-        {/* Desktop Category Filter - Unchanged */}
+        {/* Desktop Category Filter */}
         <div className="hidden md:flex flex-wrap gap-2 mb-8">
           <button
             onClick={() => handleCategoryChange('all')}
@@ -105,7 +99,7 @@ const MuralGallery: React.FC = () => {
           ))}
         </div>
 
-        {/* Mobile Category Filter - Unchanged */}
+        {/* Mobile Category Filter */}
         <div className="md:hidden mb-8 space-y-2">
           <div className="flex gap-2">
             <button
@@ -148,34 +142,7 @@ const MuralGallery: React.FC = () => {
         ) : (
           <>
             {filteredArtworks.length > 0 ? (
-              <>
-                {/* Mobile View Only (2 images per row) */}
-                <div className="md:hidden grid grid-cols-2 gap-4">
-                  {filteredArtworks.map((artwork) => (
-                    <div key={artwork.id} className="group">
-                      <Link to={`/mural/${artwork.id}`} className="block">
-                        <div className="aspect-[4/3] overflow-hidden rounded-lg shadow-md bg-gray-100">
-                          <img
-                            src={artwork.imageUrl}
-                            alt={artwork.title}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        </div>
-                        <div className="mt-2 px-1">
-                          <h3 className="font-medium text-sm line-clamp-1">{artwork.title}</h3>
-                          <p className="text-xs text-gray-600 line-clamp-1">{artwork.artist}</p>
-                        </div>
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Desktop View - Unchanged (using GalleryGrid) */}
-                <div className="hidden md:block">
-                  <GalleryGrid artworks={filteredArtworks} />
-                </div>
-              </>
+              <GalleryGrid artworks={filteredArtworks} />
             ) : (
               <div className="text-center py-12">
                 <p className="text-gray-600 text-lg">
