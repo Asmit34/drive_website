@@ -147,7 +147,7 @@ const Home: React.FC = () => {
             <GalleryCard 
               title="Mural Gallery"
               description="Explore breathtaking murals across various themes - from abstract designs to cultural expressions and beyond."
-              imageUrl="https://images.pexels.com/photos/1282315/pexels-photo-1282315.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"
+              imageUrl="https://bat.com.np/wp-content/uploads/2025/04/Design-30.jpg"
               linkTo="/murals"
               isMobile={isMobile}
             />

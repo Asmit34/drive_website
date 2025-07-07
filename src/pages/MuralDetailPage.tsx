@@ -111,4 +111,4 @@ const MuralDetailPage: React.FC = () => {
   );
 };
 
-export default MuralDetailPage;
+export default MuralDetailPage; 
